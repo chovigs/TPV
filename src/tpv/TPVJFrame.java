@@ -5,6 +5,7 @@
  */
 package tpv;
 
+import ctpv.TerminalComando;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
@@ -12,10 +13,20 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 
 import javax.swing.JButton;
@@ -53,7 +64,7 @@ public class TPVJFrame extends JFrame {
     public TPVJFrame() {
         super("TPV");
         crearVentana();
-        setVisible(true);
+        setVisible(true);        
     }
 
     //----------METODOS
@@ -70,6 +81,16 @@ public class TPVJFrame extends JFrame {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         add(jPanelTPV);
         pack();
+        abrirVentanaenServidor(true);
+        
+        //defino el comportamiento al cerrar la ventana        
+        this.addWindowListener(new WindowAdapter(){    
+            public void windowClosing(WindowEvent arg0) { 
+                //hacemos que se cierre la ventana en el CTPV
+                abrirVentanaenServidor(false);
+                System.exit(0);
+            } 
+        });
     }
 
     /**
@@ -110,7 +131,9 @@ public class TPVJFrame extends JFrame {
         jButtonSalir.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                System.exit(0);
+               //hacemos que se cierre la ventana en el CTPV
+                abrirVentanaenServidor(false);
+                System.exit(0);                
             }
         });
         jPanelIzquierdo.add(jButtonSalir);
@@ -347,7 +370,35 @@ public class TPVJFrame extends JFrame {
         Calculadora calculadora = new Calculadora(this);
     }
 
+    //envia los datos para abrir o cerrar la ventana en el servidor
+    //indicamos la ventana abrir o cerrar
+    private void abrirVentanaenServidor(boolean abrir){
+        try{
+            TerminalComando aux=new TerminalComando();
+            if(abrir){
+             aux=new TerminalComando(this.getTitle().toString(),"abrir");
+            }else{
+              aux=new TerminalComando(this.getTitle().toString(),"cerrar"); 
+            }
+            byte[] bytes = aux.getBytes();
+            InetAddress inetaddress = Inet4Address.getLocalHost();
+            int puerto = 5000;
+            
+            DatagramSocket socket = new DatagramSocket();
+            DatagramPacket datagrama = new DatagramPacket(bytes, bytes.length, inetaddress,puerto);
+            
+            socket.send(datagrama);
+            socket.close();
+            
+        } catch (UnknownHostException ex) {
+            Logger.getLogger(TPVJFrame.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(TPVJFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
     public static void main(String[] args) {
         TPVJFrame ventana = new TPVJFrame();
     }
+        
 }
