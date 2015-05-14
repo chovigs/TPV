@@ -5,16 +5,17 @@
  */
 package ctpv;
 
-import java.io.ByteArrayInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.SocketException;
-import java.util.ArrayList;
+import java.io.OutputStream;
+import java.math.BigDecimal;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
 
 /**
@@ -26,88 +27,157 @@ public class HiloEscuchaTPV extends Thread {
 
     String nombreTPV;
     VentanaServidor ventanaservidor; //Indica la VentanaServidor sobre la que actuamos
-    HashMap<String, VentanaInterna> listaventanas; //Recoge las ventanas que se van abriendo con el terminal correspondiente
+    Factura factura; //Definimos el elemento factura que aparecerá
+    
+    VentanaInterna[] arrayventanas;//array donde guardaré las ventanas internas
+    static int contador;//contador para controlar el número de ventanas
+    static final int PUERTO = 5000;
+    ServerSocket server;
+    ObjectInputStream InputDatoRecibido;
+    Socket socket;
+    
 
-    public HiloEscuchaTPV() {
-        start();
-    }
-
-    public HiloEscuchaTPV(String nombreTPV) {
-        this.nombreTPV = nombreTPV;
-        start();
-    }
-
+    //Constructor. Le pasamos la ventanaservidor correspondiente
     public HiloEscuchaTPV(VentanaServidor ventanaservidor) {
         this.ventanaservidor = ventanaservidor;
+         contador = 0;
+        try {
+            server = new ServerSocket(5000);
+        } catch (IOException ex) {
+            Logger.getLogger(HiloEscuchaTPV.class.getName()).log(Level.SEVERE, null, ex);
+        }
         start();
     }
 
     @Override
     public void run() {
-        System.out.println("Escuchando");
-        listaventanas = new HashMap<String, VentanaInterna>();
+        System.out.println("Escuchando");        
 
-        //Recibimos el terminal a tratar y laorden a ejecutar
-        try {
-            DatagramSocket socket = new DatagramSocket(5000);
-            while (true) {
-
-                byte[] bytes = new byte[1000];
-                DatagramPacket datagrama = new DatagramPacket(bytes, 1000);
-                socket.receive(datagrama);
-                TerminalComando tc = new TerminalComando();
-
-                try {
-                    tc = convertirByteArrayToDatoUDP(datagrama.getData());
-                } catch (ClassNotFoundException ex) {
-                    Logger.getLogger(TerminalComando.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                System.out.println("comando " + tc.getComando());
-                //Actuamos según el comando recibido
-                if (tc.getComando().equals("abrir")) {
-                    System.out.println("entro en abrir ventana " + tc.getTerminal());
-                   
-                    VentanaInterna vi = new VentanaInterna(tc.getTerminal());                    
+        arrayventanas = new VentanaInterna[7];
+        
+        while (contador < 7) { //controlo una petición de más
+            try {
+                
+                socket = server.accept();
+               //asigno el indice
+                int indiceaux=0;
+                    indiceaux=asignarindice();
+                    enviarIndice(socket,indiceaux); //envío el indice
+                 if (indiceaux!=6){ //solo permito 6 ventanas
+                    VentanaInterna vi = new VentanaInterna(indiceaux);
                     ventanaservidor.add(vi); //añadimos la internalframe en la ventana principal
-                     listaventanas.put(vi.getTitle(), vi);//incluimos la internalframe en el HashMap
-                } else {
-                    eliminarventana(tc.getTerminal()); //quitamos la ventana
-                    System.out.println("entro en eliminar ventana " + tc.getTerminal());
-                }
-
+                    arrayventanas[indiceaux]=vi; //añadimos la ventana al array de ventanas
+                    contador++; //aumentamos el contador
+                    //Añadimos el hilo de ventas
+                     Ventas ventas = new Ventas(this, socket, indiceaux);
+                     ventas.start();
+                     this.ventanaservidor.repaint();
+                    }
+                
+                System.out.println("contador "+contador);
+            } catch (IOException ex) {
+                Logger.getLogger(HiloEscuchaTPV.class.getName()).log(Level.SEVERE, null, ex);
             }
-        } catch (SocketException ex) {
-            Logger.getLogger(HiloEscuchaTPV.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    //método para enviar el índice correspondiente
+    private void enviarIndice(Socket socket, int indice){       
+        OutputStream aux = null;
+        try {
+            aux = socket.getOutputStream();
+            DataOutputStream flujo = new DataOutputStream(aux);
+            flujo.writeUTF(""+indice );
+            
         } catch (IOException ex) {
             Logger.getLogger(HiloEscuchaTPV.class.getName()).log(Level.SEVERE, null, ex);
         }
+        System.out.println("indice "+indice);
     }
-
-    //Método que convierte el array de bytes a TerminalComando
-    protected TerminalComando convertirByteArrayToDatoUDP(byte[] buffer) throws IOException, ClassNotFoundException {
-        ByteArrayInputStream byteArray = new ByteArrayInputStream(buffer);
-        ObjectInputStream is = new ObjectInputStream(byteArray);
-        TerminalComando aux = (TerminalComando) is.readObject();
-        is.close();
-        return aux;
-
-    }
-
-    //método que elimina la ventana
-    private void eliminarventana(String nombre) {
-        System.out.println("ventana a eliminar " + nombre);
-        //buscamos el terminal a cerrar -eliminar-
-        for (String string : listaventanas.keySet()) {
-            if (listaventanas.get(string).getTitle().equals(nombre)) {
-                JOptionPane.showMessageDialog(listaventanas.get(string), "Cliente Servido",
-                        "Información", JOptionPane.INFORMATION_MESSAGE);
-
-                ventanaservidor.remove(listaventanas.get(string)); //eliminamos de la ventana
-                ventanaservidor.repaint();//actualizamos
-                listaventanas.remove(string);//eliminamos del HashMap
-            }
+    
+    //asignamos el índice que esté libre en el array
+    private int asignarindice(){        
+        int i=0;
+        while(arrayventanas[i]!=null&&i<6){
+            i++;
         }
+        return i;
+    }
+    
+    //método que elimina la ventana  
+    public void eliminarventana(int indice){
+        JOptionPane.showMessageDialog(arrayventanas[indice], "Cliente Servido","Información", JOptionPane.INFORMATION_MESSAGE);
+        ventanaservidor.remove(arrayventanas[indice]); //eliminamos de la ventana
+        ventanaservidor.repaint();//actualizamos
+        arrayventanas[indice]=null;
+        contador--;
+    }
+    
+
+    //método sincronizado  que escribe en el fichero
+    //le pasamos el fichero, la lista, el total y el nombre del terminal
+    public synchronized void escribirVentas(String ficherofactura,DefaultListModel modelo,BigDecimal big, String terminal){
+        Factura factura= new Factura(ficherofactura, modelo, big, terminal);
+        //Si queremos un mensaje con resultado
+       // JOptionPane.showMessageDialog(ventanaservidor, factura.option(),"Información", JOptionPane.INFORMATION_MESSAGE);
+    }
+    
+    //Getters y Setters
+
+    public String getNombreTPV() {
+        return nombreTPV;
     }
 
+    public void setNombreTPV(String nombreTPV) {
+        this.nombreTPV = nombreTPV;
+    }
+
+    public VentanaServidor getVentanaservidor() {
+        return ventanaservidor;
+    }
+
+    public void setVentanaservidor(VentanaServidor ventanaservidor) {
+        this.ventanaservidor = ventanaservidor;
+    }
+
+    public VentanaInterna[] getArrayventanas() {
+        return arrayventanas;
+    }
+
+    public void setArrayventanas(VentanaInterna[] arrayventanas) {
+        this.arrayventanas = arrayventanas;
+    }
+
+    public static int getContador() {
+        return contador;
+    }
+
+    public static void setContador(int contador) {
+        HiloEscuchaTPV.contador = contador;
+    }
+
+    public ServerSocket getServer() {
+        return server;
+    }
+
+    public void setServer(ServerSocket server) {
+        this.server = server;
+    }
+
+    public ObjectInputStream getInputDatoRecibido() {
+        return InputDatoRecibido;
+    }
+
+    public void setInputDatoRecibido(ObjectInputStream InputDatoRecibido) {
+        this.InputDatoRecibido = InputDatoRecibido;
+    }
+
+    public Socket getSocket() {
+        return socket;
+    }
+
+    public void setSocket(Socket socket) {
+        this.socket = socket;
+    }
     
 }

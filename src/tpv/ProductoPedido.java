@@ -5,6 +5,7 @@
  */
 package tpv;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
@@ -12,7 +13,7 @@ import java.math.RoundingMode;
  * Esta clas emodela un articulo que a sido pedido y añadido a la factura
  * @author IVAN
  */
-public class ProductoPedido {
+public class ProductoPedido implements Serializable{
     //----------CAMPOS
     private String nombre;
     private float precio;
@@ -25,7 +26,7 @@ public class ProductoPedido {
      * @param precio    El precio unitario del producto
      * @param cantidad  La cantidad de unidades pedidas del producto
      */
-    public ProductoPedido(String nombre, float precio, int cantidad) {
+    public ProductoPedido (String nombre, float precio, int cantidad) {
         super();
         this.nombre = nombre;
         this.precio = precio;
@@ -67,4 +68,10 @@ public class ProductoPedido {
       big = big.setScale(2, RoundingMode.HALF_UP);
       return "" + big;
     }
+
+    public float getPrecio() {
+        return precio;
+    }
+    
+    
 }

@@ -6,6 +6,8 @@
 
 package ctpv;
 
+import javax.swing.ImageIcon;
+
 /**
  *
  * @author chovi_000
@@ -18,26 +20,15 @@ public class VentanaServidor extends javax.swing.JFrame {
      * Creates new form VentanaServidor
      */
     public VentanaServidor() {
-        initComponents();
-        setSize(780, 880); 
-        //añado estas ventanas internas para comprobar el funcionamiento. 
-        //en versiones siguientes desaparecerán
-        add(new VentanaInterna("Prueba1"));
-        add(new VentanaInterna("Prueba2"));
-        add(new VentanaInterna("Prueba3"));
-        add(new VentanaInterna("Prueba4"));
-        add(new VentanaInterna("Prueba5"));
-     //   add(new VentanaInterna("Prueba6"));
-     //   add(new VentanaInterna("Prueba7"));
-      //  add(new VentanaInterna("Prueba8"));
-      //  add(new VentanaInterna("Prueba9"));
-       // add(new VentanaInterna("Prueba10"));
-      //  add(new VentanaInterna("Prueba11"));
-     //   add(new VentanaInterna("Prueba12"));
-       // add(new VentanaInterna("Prueba13"));
-       // add(new VentanaInterna("Prueba14"));
-        pack();
         
+        initComponents();
+        //ponemos el icono
+       setIconImage(new ImageIcon("..\\TPV\\src\\Iconos\\Hayden.jpg").getImage());
+        setTitle("CTPV"); 
+        //hacemos que la ventana aparezca maximizada
+        setExtendedState(this.MAXIMIZED_BOTH); 
+        pack();
+        //lanzamos el hilo de escucha
         escuchar();
     }
 
@@ -56,7 +47,8 @@ public class VentanaServidor extends javax.swing.JFrame {
     private void initComponents() {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        getContentPane().setLayout(new java.awt.GridLayout(4, 4));
+        setPreferredSize(new java.awt.Dimension(800, 600));
+        getContentPane().setLayout(new java.awt.GridLayout(2, 3));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -91,7 +83,7 @@ public class VentanaServidor extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new VentanaServidor().setVisible(true);
+                new VentanaServidor().setVisible(true);                 
             }
         });
     }

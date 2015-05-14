@@ -3,32 +3,56 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package ctpv;
+
+import java.io.DataInputStream;
+import java.io.ObjectInputStream;
+import java.net.Socket;
 
 /**
  *
  * @author chovi_000
  */
-
 //Esta es la internalframe que aparecerá en el terminal CTPV
 public class VentanaInterna extends javax.swing.JInternalFrame {
 
-    String nombre;
+    private String nombre;
+    private int indice;
+    private Socket socket;
+    private ObjectInputStream InputDatoRecibido;
+    private HiloEscuchaTPV hiloescucha;
+    
+    /**
+     * Para lectura de datos en el socket
+     */
+    private DataInputStream dataInput;
+
     /**
      * Creates new form VentanaInterna
      */
     public VentanaInterna() {
         initComponents();
-        setSize(356, 317);
+        //setFrameIcon(new ImageIcon(this.getClass().getResource("..\\TPV\\src\\Iconos\\Productos.png")));
+       
         setVisible(true);
     }
 
-    public VentanaInterna(String nombre){
+    public VentanaInterna(int indice) {
         this();
-        this.nombre=nombre;
-        setTitle(nombre);
+        this.indice = indice;
+        ponerNombre();
+        setVisible(true);
     }
+
+
+
+    private void ponerNombre() {
+        int aux = this.indice + 1;
+        this.nombre = "Terminal TPV " + aux;
+        setTitle("Terminal TPV " + aux);
+    }
+
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -38,54 +62,50 @@ public class VentanaInterna extends javax.swing.JInternalFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
-        jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
+        jLabelTotalTicket = new javax.swing.JLabel();
+        jScrollPaneTicketCompra = new javax.swing.JScrollPane();
+        jList1TicketCompra = new javax.swing.JList();
 
         setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
         setForeground(new java.awt.Color(204, 204, 255));
-        setMaximumSize(new java.awt.Dimension(356, 317));
+        setMaximumSize(new java.awt.Dimension(800, 600));
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
+        jLabelTotalTicket.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jLabelTotalTicket.setText("TOTAL");
+        jLabelTotalTicket.setBorder(javax.swing.BorderFactory.createTitledBorder("Total Ticket"));
 
-            },
-            new String [] {
+        jScrollPaneTicketCompra.setBorder(javax.swing.BorderFactory.createTitledBorder("Ticket Compra"));
+        jScrollPaneTicketCompra.setPreferredSize(new java.awt.Dimension(285, 300));
+        jScrollPaneTicketCompra.setWheelScrollingEnabled(false);
 
-            }
-        ));
-        jScrollPane1.setViewportView(jTable1);
-
-        jLabel1.setText("TOTAL");
+        jList1TicketCompra.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
+        jList1TicketCompra.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        jList1TicketCompra.setFocusable(false);
+        jList1TicketCompra.setMaximumSize(new java.awt.Dimension(10000, 10000));
+        jList1TicketCompra.setPreferredSize(new java.awt.Dimension(200, 300));
+        jList1TicketCompra.setValueIsAdjusting(true);
+        jList1TicketCompra.setVisibleRowCount(6);
+        jScrollPaneTicketCompra.setViewportView(jList1TicketCompra);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 218, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(75, 75, 75)
-                        .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGap(10, 10, 10))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(45, 45, 45)
-                        .addComponent(jLabel1)
-                        .addGap(45, 45, 45))))
+                .addContainerGap()
+                .addComponent(jScrollPaneTicketCompra, javax.swing.GroupLayout.PREFERRED_SIZE, 315, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(80, 80, 80)
+                .addComponent(jLabelTotalTicket, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(44, 44, 44))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 283, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
             .addGroup(layout.createSequentialGroup()
-                .addGap(11, 11, 11)
-                .addComponent(jLabel1)
-                .addGap(18, 18, 18)
-                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(217, 217, 217))
+                .addGap(26, 26, 26)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabelTotalTicket, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jScrollPaneTicketCompra, javax.swing.GroupLayout.DEFAULT_SIZE, 251, Short.MAX_VALUE))
+                .addContainerGap(76, Short.MAX_VALUE))
         );
 
         pack();
@@ -93,9 +113,84 @@ public class VentanaInterna extends javax.swing.JInternalFrame {
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable jTable1;
+    private javax.swing.JLabel jLabelTotalTicket;
+    private javax.swing.JList jList1TicketCompra;
+    private javax.swing.JScrollPane jScrollPaneTicketCompra;
     // End of variables declaration//GEN-END:variables
+
+    
+    // ----------- Getters y Setters -------------
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public int getIndice() {
+        return indice;
+    }
+
+    public void setIndice(int indice) {
+        this.indice = indice;
+    }
+
+    public Socket getSocket() {
+        return socket;
+    }
+
+    public void setSocket(Socket socket) {
+        this.socket = socket;
+    }
+
+    public ObjectInputStream getInputDatoRecibido() {
+        return InputDatoRecibido;
+    }
+
+    public void setInputDatoRecibido(ObjectInputStream InputDatoRecibido) {
+        this.InputDatoRecibido = InputDatoRecibido;
+    }
+
+    public HiloEscuchaTPV getHiloescucha() {
+        return hiloescucha;
+    }
+
+    public void setHiloescucha(HiloEscuchaTPV hiloescucha) {
+        this.hiloescucha = hiloescucha;
+    }
+
+    public DataInputStream getDataInput() {
+        return dataInput;
+    }
+
+    public void setDataInput(DataInputStream dataInput) {
+        this.dataInput = dataInput;
+    }
+
+    public javax.swing.JLabel getjLabelTotalTicket() {
+        return jLabelTotalTicket;
+    }
+
+    public void setjLabelTotalTicket(javax.swing.JLabel jLabelTotalTicket) {
+        this.jLabelTotalTicket = jLabelTotalTicket;
+    }
+
+    public javax.swing.JList getjList1TicketCompra() {
+        return jList1TicketCompra;
+    }
+
+    public void setjList1TicketCompra(javax.swing.JList jList1TicketCompra) {
+        this.jList1TicketCompra = jList1TicketCompra;
+    }
+
+    public javax.swing.JScrollPane getjScrollPaneTicketCompra() {
+        return jScrollPaneTicketCompra;
+    }
+
+    public void setjScrollPaneTicketCompra(javax.swing.JScrollPane jScrollPaneTicketCompra) {
+        this.jScrollPaneTicketCompra = jScrollPaneTicketCompra;
+    }
+    
 }

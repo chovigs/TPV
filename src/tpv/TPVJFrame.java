@@ -5,7 +5,7 @@
  */
 package tpv;
 
-import ctpv.TerminalComando;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
@@ -15,14 +15,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
@@ -36,7 +36,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -57,6 +56,13 @@ public class TPVJFrame extends JFrame {
     private JPanel jPanelListaProductos; // Panel donde van apareciendo los productos de las distintas familias
     private JTable tabla;
 
+    //-------constantes para la conexion
+    static final String HOST = "localhost";
+    static final int PUERTO = 5000;
+    Socket socket;
+    private ObjectOutputStream salida;
+    //---------indice asignado
+    private int indice = -1;
     //---------- CONSTRUCTOR
     /**
      * Crea una vista del TPV, iniciando toddos sus componentes.
@@ -64,7 +70,13 @@ public class TPVJFrame extends JFrame {
     public TPVJFrame() {
         super("TPV");
         crearVentana();
-        setVisible(true);        
+        setVisible(true);
+        //abrirVentanaenServidor();
+        try {
+            salida = new ObjectOutputStream(socket.getOutputStream());
+        } catch (IOException ex) {
+            Logger.getLogger(TPVJFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     //----------METODOS
@@ -81,15 +93,16 @@ public class TPVJFrame extends JFrame {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         add(jPanelTPV);
         pack();
-        abrirVentanaenServidor(true);
-        
+        abrirVentanaenServidor();
+
         //defino el comportamiento al cerrar la ventana        
-        this.addWindowListener(new WindowAdapter(){    
-            public void windowClosing(WindowEvent arg0) { 
+        this.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent arg0) {
                 //hacemos que se cierre la ventana en el CTPV
-                abrirVentanaenServidor(false);
+                ProductoPedido prodsalir = new ProductoPedido("salir", 1, 1);
+                enviarResultado(prodsalir);                   
                 System.exit(0);
-            } 
+            }
         });
     }
 
@@ -131,9 +144,10 @@ public class TPVJFrame extends JFrame {
         jButtonSalir.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
-               //hacemos que se cierre la ventana en el CTPV
-                abrirVentanaenServidor(false);
-                System.exit(0);                
+                //hacemos que se cierre la ventana en el CTPV
+                ProductoPedido prodsalir = new ProductoPedido("salir", 1, 1); //enviamos este producto "especial"
+                enviarResultado(prodsalir);                   
+                System.exit(0);
             }
         });
         jPanelIzquierdo.add(jButtonSalir);
@@ -317,21 +331,23 @@ public class TPVJFrame extends JFrame {
         int cantidad = 1;
         float total = precio;
         if (listaPedidos.containsKey(nombre)) {
-            if(nombre.equals(nombre)){
+            if (nombre.equals(nombre)) {
                 total = listaPedidos.get(nombre).getTotal() + precio;
             }
             cantidad = listaPedidos.get(nombre).getCantidad() + 1;
         }
         ProductoPedido nuevoPedido;
-        if(nombre.equals("Otros")){
-            nuevoPedido= new ProductoOtros(nombre, precio, cantidad, total);
-        }
-        else{
+        if (nombre.equals("Otros")) {
+            nuevoPedido = new ProductoOtros(nombre, precio, cantidad, total);
+        } else {
             nuevoPedido = new ProductoPedido(nombre, precio, cantidad);
         }
         listaPedidos.put(nombre, nuevoPedido);
         actualizarTabla();
         actualizarTotal();
+
+        //envio el nuevoPedido para que aparezca en el panel de CTPV      
+        enviarResultado(nuevoPedido);
     }
 
     public void actualizarTabla() {
@@ -351,7 +367,7 @@ public class TPVJFrame extends JFrame {
         for (String string : listaPedidos.keySet()) {
             total += listaPedidos.get(string).getTotal();
         }
-        String val = total +"";
+        String val = total + "";
         BigDecimal big = new BigDecimal(val);
         big = big.setScale(2, RoundingMode.HALF_UP);
         jLabelTotal.setText("" + big);
@@ -361,44 +377,59 @@ public class TPVJFrame extends JFrame {
         int[] indices = tabla.getSelectedRows();
         for (int i = 0; i < indices.length; i++) {
             listaPedidos.remove((String) modeloTabla.getValueAt(indices[i], 0));
+            ProductoPedido nuevoPedido= new ProductoPedido((String)modeloTabla.getValueAt(indices[i], 0),1,0);
+            enviarResultado(nuevoPedido);
         }
         actualizarTabla();
         actualizarTotal();
+       
     }
-    
-    private void crearCalculadora (){
+
+    private void crearCalculadora() {
         Calculadora calculadora = new Calculadora(this);
     }
 
     //envia los datos para abrir o cerrar la ventana en el servidor
-    //indicamos la ventana abrir o cerrar
-    private void abrirVentanaenServidor(boolean abrir){
-        try{
-            TerminalComando aux=new TerminalComando();
-            if(abrir){
-             aux=new TerminalComando(this.getTitle().toString(),"abrir");
-            }else{
-              aux=new TerminalComando(this.getTitle().toString(),"cerrar"); 
+    //indicamos la ventana abrir o cerrar  
+    private void abrirVentanaenServidor() {
+        try {
+            // Cliente TCP // creamos el socket
+
+            socket = new Socket(HOST, PUERTO);
+             //esperamos el indice asignado  
+            while (indice == -1) {
+                DataInputStream entrada = new DataInputStream(socket.getInputStream());
+                String indi = entrada.readUTF();
+                indice = Integer.parseInt(indi);               
             }
-            byte[] bytes = aux.getBytes();
-            InetAddress inetaddress = Inet4Address.getLocalHost();
-            int puerto = 5000;
-            
-            DatagramSocket socket = new DatagramSocket();
-            DatagramPacket datagrama = new DatagramPacket(bytes, bytes.length, inetaddress,puerto);
-            
-            socket.send(datagrama);
-            socket.close();
-            
-        } catch (UnknownHostException ex) {
-            Logger.getLogger(TPVJFrame.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             Logger.getLogger(TPVJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
+
+        //Si el índice es 6, ya hemos alcanzado el límite y no nos deja continuar
+        if (indice == 6) {
+            JOptionPane.showMessageDialog(this, "Demasiados TPV abiertos. Inténtelo más adelante", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            System.exit(0);
+        }
+    }
+
+
+    //Método que envía el nuevoProducto
+
+    public void enviarResultado(ProductoPedido nuevoPedido){
+         try {  
+            
+            salida.writeObject(nuevoPedido);
+            salida.flush();
+            salida.reset();
+        } catch (IOException ex) {
+            Logger.getLogger(TPVJFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
     }
     
     public static void main(String[] args) {
         TPVJFrame ventana = new TPVJFrame();
     }
-        
+
 }
