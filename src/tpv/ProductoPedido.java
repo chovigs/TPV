@@ -54,6 +54,12 @@ public class ProductoPedido implements Serializable{
         return producto;
     }
     
+    
+    public String[] getProducto2() {
+        String[] producto = {"" + cantidad, nombre,redondear(precio),  redondear(cantidad * precio)};
+        return producto;
+    }
+    
     /**
      * Retorna el valor total de las unidades pedidas
      * @return El preci de todas las unidades pedidas

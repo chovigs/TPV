@@ -15,6 +15,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
 import tpv.ProductoPedido;
 
 /**
@@ -30,7 +31,7 @@ public class Ventas extends Thread {
     VentanaInterna ventana;
 
     private HashMap<String, ProductoPedido> listaPedidos; // Aqui se almacenan los productos pedidos
-    DefaultListModel modelo;
+    DefaultTableModel modelo;
     BigDecimal big;
     static final String ficheroFactura ="Ventas.dat";
 
@@ -39,7 +40,7 @@ public class Ventas extends Thread {
         this.socket = socket;
         this.indice = indice;
         this.ventana = hiloescucha.getArrayventanas()[indice];
-        //this.ventana.setVisible(true);
+        this.ventana.setVisible(true);
     }
 
     @Override
@@ -47,8 +48,10 @@ public class Ventas extends Thread {
         //inicializamos la lista, y el DefaultListModel
         //asignamos la lista al modelo
         listaPedidos = new HashMap<>();
-        modelo = new DefaultListModel();
-        ventana.getjList1TicketCompra().setModel(modelo);
+        modelo = new DefaultTableModel();
+        modelo=(DefaultTableModel) ventana.getjTablePedidos().getModel();
+        ventana.getjTablePedidos().setModel(modelo);
+        
      
         try {//recibimos los datos
             InputDatoRecibido = new ObjectInputStream(socket.getInputStream());
@@ -59,8 +62,7 @@ public class Ventas extends Thread {
         while (!socket.isClosed()) { //Comprobamos el tipo de "producto" que hemos recibido
             ProductoPedido producto = new tpv.ProductoPedido("", 0, 0);
             try {//convierto el dato recibido en ProductoPedido
-                producto = (ProductoPedido) InputDatoRecibido.readObject();
-                                
+                producto = (ProductoPedido) InputDatoRecibido.readObject();                          
             } catch (IOException ex) {
                 Logger.getLogger(Ventas.class.getName()).log(Level.SEVERE, null, ex);
             } catch (ClassNotFoundException ex) {
@@ -68,7 +70,8 @@ public class Ventas extends Thread {
             } 
            //Según el tipo de "producto", actualizamos o salimos
             if (!producto.getNombre().equals("salir")) {
-                    actualizarLista(producto);
+                    actualizarTabla(producto);
+                    //System.out.println(" producto "+producto.toString());
                 } else {
                 try {                    
                     hiloescucha.eliminarventana(indice);
@@ -81,22 +84,7 @@ public class Ventas extends Thread {
         }
     }
 
-    //método para actualizar la lista
-    private void actualizarLista(ProductoPedido producto) {
-         modelo.clear();//para que actualice correctaente, escribimos toda la lista
-        if (producto.getCantidad() != 0) {
-            listaPedidos.put(producto.getNombre(), producto);
-        } else {
-            listaPedidos.remove(producto.getNombre());
-        }
-       
-
-        for (String string : listaPedidos.keySet()) {
-            modelo.addElement(elementoLista(listaPedidos.get(string)).toString());
-        }
-        //actualizamos el total
-        actualizarTotal();
-    }
+   
 
     //diseño el elemento lista para presentarlo
     private String elementoLista(ProductoPedido producto) {
@@ -119,5 +107,28 @@ public class Ventas extends Thread {
         ventana.getjLabelTotalTicket().setText(" TOTAL \n" + big + " € ");
     }
     
+     /**
+     * Método que borra la tabla para rellenarla nuevamente con los datos
+     * actualizados de la compra.
+     *
+     */  
     
+    public void actualizarTabla(ProductoPedido producto) {
+        int a = modelo.getRowCount() - 1;
+        for (int i = a; i >= 0; i--) {
+            modelo.removeRow(i);
+        }//para que actualice correctaente, escribimos toda la lista
+        if (producto.getCantidad() != 0) {
+            listaPedidos.put(producto.getNombre(), producto);
+        } else {
+            listaPedidos.remove(producto.getNombre());
+        }
+       
+        for (String string : listaPedidos.keySet()) {
+            modelo.addRow(listaPedidos.get(string).getProducto2());           
+        }
+        ventana.getjTablePedidos().repaint();
+        //actualizamos el total
+        actualizarTotal();
+    }
 }

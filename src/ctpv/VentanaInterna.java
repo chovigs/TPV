@@ -8,6 +8,7 @@ package ctpv;
 import java.io.DataInputStream;
 import java.io.ObjectInputStream;
 import java.net.Socket;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
@@ -22,6 +23,7 @@ public class VentanaInterna extends javax.swing.JInternalFrame {
     private ObjectInputStream InputDatoRecibido;
     private HiloEscuchaTPV hiloescucha;
     
+    private DefaultTableModel modelo;
     /**
      * Para lectura de datos en el socket
      */
@@ -41,6 +43,9 @@ public class VentanaInterna extends javax.swing.JInternalFrame {
         this();
         this.indice = indice;
         ponerNombre();
+        modelo = new DefaultTableModel();
+   modelo=(DefaultTableModel) this.jTablePedidos.getModel();
+        jTablePedidos.setModel(this.jTablePedidos.getModel());
         setVisible(true);
     }
 
@@ -63,8 +68,8 @@ public class VentanaInterna extends javax.swing.JInternalFrame {
     private void initComponents() {
 
         jLabelTotalTicket = new javax.swing.JLabel();
-        jScrollPaneTicketCompra = new javax.swing.JScrollPane();
-        jList1TicketCompra = new javax.swing.JList();
+        jScrollPanePedidos = new javax.swing.JScrollPane();
+        jTablePedidos = new javax.swing.JTable();
 
         setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
         setForeground(new java.awt.Color(204, 204, 255));
@@ -74,27 +79,27 @@ public class VentanaInterna extends javax.swing.JInternalFrame {
         jLabelTotalTicket.setText("TOTAL");
         jLabelTotalTicket.setBorder(javax.swing.BorderFactory.createTitledBorder("Total Ticket"));
 
-        jScrollPaneTicketCompra.setBorder(javax.swing.BorderFactory.createTitledBorder("Ticket Compra"));
-        jScrollPaneTicketCompra.setPreferredSize(new java.awt.Dimension(285, 300));
-        jScrollPaneTicketCompra.setWheelScrollingEnabled(false);
+        jTablePedidos.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
 
-        jList1TicketCompra.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
-        jList1TicketCompra.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        jList1TicketCompra.setFocusable(false);
-        jList1TicketCompra.setMaximumSize(new java.awt.Dimension(10000, 10000));
-        jList1TicketCompra.setPreferredSize(new java.awt.Dimension(200, 300));
-        jList1TicketCompra.setValueIsAdjusting(true);
-        jList1TicketCompra.setVisibleRowCount(6);
-        jScrollPaneTicketCompra.setViewportView(jList1TicketCompra);
+            },
+            new String [] {
+                "Cantidad", "Producto", "Sub Total", "Total"
+            }
+        ));
+        jScrollPanePedidos.setViewportView(jTablePedidos);
+        if (jTablePedidos.getColumnModel().getColumnCount() > 0) {
+            jTablePedidos.getColumnModel().getColumn(0).setPreferredWidth(60);
+        }
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPaneTicketCompra, javax.swing.GroupLayout.PREFERRED_SIZE, 315, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(80, 80, 80)
+                .addGap(22, 22, 22)
+                .addComponent(jScrollPanePedidos, javax.swing.GroupLayout.DEFAULT_SIZE, 308, Short.MAX_VALUE)
+                .addGap(75, 75, 75)
                 .addComponent(jLabelTotalTicket, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(44, 44, 44))
         );
@@ -103,9 +108,9 @@ public class VentanaInterna extends javax.swing.JInternalFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGap(26, 26, 26)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabelTotalTicket, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jScrollPaneTicketCompra, javax.swing.GroupLayout.DEFAULT_SIZE, 251, Short.MAX_VALUE))
-                .addContainerGap(76, Short.MAX_VALUE))
+                    .addComponent(jScrollPanePedidos, javax.swing.GroupLayout.PREFERRED_SIZE, 359, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabelTotalTicket, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(176, Short.MAX_VALUE))
         );
 
         pack();
@@ -114,8 +119,8 @@ public class VentanaInterna extends javax.swing.JInternalFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabelTotalTicket;
-    private javax.swing.JList jList1TicketCompra;
-    private javax.swing.JScrollPane jScrollPaneTicketCompra;
+    private javax.swing.JScrollPane jScrollPanePedidos;
+    private javax.swing.JTable jTablePedidos;
     // End of variables declaration//GEN-END:variables
 
     
@@ -177,20 +182,22 @@ public class VentanaInterna extends javax.swing.JInternalFrame {
         this.jLabelTotalTicket = jLabelTotalTicket;
     }
 
-    public javax.swing.JList getjList1TicketCompra() {
-        return jList1TicketCompra;
+    public javax.swing.JScrollPane getjScrollPanePedidos() {
+        return jScrollPanePedidos;
     }
 
-    public void setjList1TicketCompra(javax.swing.JList jList1TicketCompra) {
-        this.jList1TicketCompra = jList1TicketCompra;
+    public void setjScrollPanePedidos(javax.swing.JScrollPane jScrollPanePedidos) {
+        this.jScrollPanePedidos = jScrollPanePedidos;
     }
 
-    public javax.swing.JScrollPane getjScrollPaneTicketCompra() {
-        return jScrollPaneTicketCompra;
+    public javax.swing.JTable getjTablePedidos() {
+        return jTablePedidos;
     }
 
-    public void setjScrollPaneTicketCompra(javax.swing.JScrollPane jScrollPaneTicketCompra) {
-        this.jScrollPaneTicketCompra = jScrollPaneTicketCompra;
+    public void setjTablePedidos(javax.swing.JTable jTablePedidos) {
+        this.jTablePedidos = jTablePedidos;
     }
+
+  
     
 }

@@ -17,6 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
@@ -35,7 +36,7 @@ public class HiloEscuchaTPV extends Thread {
     ServerSocket server;
     ObjectInputStream InputDatoRecibido;
     Socket socket;
-    
+    HiloLeeVentas hiloleeventas;
 
     //Constructor. Le pasamos la ventanaservidor correspondiente
     public HiloEscuchaTPV(VentanaServidor ventanaservidor) {
@@ -54,6 +55,7 @@ public class HiloEscuchaTPV extends Thread {
         System.out.println("Escuchando");        
 
         arrayventanas = new VentanaInterna[7];
+        hiloleeventas=new HiloLeeVentas("Ventas.dat");
         
         while (contador < 7) { //controlo una petición de más
             try {
@@ -116,7 +118,7 @@ public class HiloEscuchaTPV extends Thread {
 
     //método sincronizado  que escribe en el fichero
     //le pasamos el fichero, la lista, el total y el nombre del terminal
-    public synchronized void escribirVentas(String ficherofactura,DefaultListModel modelo,BigDecimal big, String terminal){
+    public synchronized void escribirVentas(String ficherofactura,DefaultTableModel modelo,BigDecimal big, String terminal){
         Factura factura= new Factura(ficherofactura, modelo, big, terminal);
         //Si queremos un mensaje con resultado
        // JOptionPane.showMessageDialog(ventanaservidor, factura.option(),"Información", JOptionPane.INFORMATION_MESSAGE);
