@@ -75,30 +75,5 @@ public class Factura {
 
     }
 
-//    //para que salga en la consola
-//    private void escribirEnConsola() {
-//        Date fecha = new Date();
-//        System.out.println("");
-//        System.out.print(" " + terminal + " Fecha " + fecha + "\n");
-//        System.out.print("---------------------------------------------\n");        
-//        System.out.print("  PRODUCTO          PRECIO         SUBTOTAL  \n");
-//        System.out.print("---------------------------------------------\n");
-//   
-//        for (int i = 0; i < modelo.size(); i++) {
-//            System.out.print(modelo.elementAt(i).toString() + "\n");
-//        }
-//        System.out.print("---------------------------------------------\n");
-//        System.out.print("                    Total  " + big + " € \n");
-//    }
-//
-//    //si queremos que salga un mensaje
-//    public String option() {
-//        Date fecha = new Date();
-//        String op = " " + terminal + " Fecha " + fecha + "\n" + "---------------------------------------------\n"+ "  PRODUCTO          PRECIO         SUBTOTAL  \n"+"---------------------------------------------\n";
-//        for (int i = 0; i < modelo.size(); i++) {
-//            op = op + (modelo.elementAt(i).toString() + "\n");
-//        }
-//        op = op + "---------------------------------------------\n" + "                    Total  " + big + " € \n";
-//        return op;
-//    }
+
 }
