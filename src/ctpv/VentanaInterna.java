@@ -22,7 +22,7 @@ public class VentanaInterna extends javax.swing.JInternalFrame {
     private Socket socket;
     private ObjectInputStream InputDatoRecibido;
     private HiloEscuchaTPV hiloescucha;
-    
+
     private DefaultTableModel modelo;
     /**
      * Para lectura de datos en el socket
@@ -35,28 +35,26 @@ public class VentanaInterna extends javax.swing.JInternalFrame {
     public VentanaInterna() {
         initComponents();
         //setFrameIcon(new ImageIcon(this.getClass().getResource("..\\TPV\\src\\Iconos\\Productos.png")));
-       
+
         setVisible(true);
     }
 
+    //constructor
     public VentanaInterna(int indice) {
         this();
         this.indice = indice;
         ponerNombre();
         modelo = new DefaultTableModel();
-   modelo=(DefaultTableModel) this.jTablePedidos.getModel();
+        modelo = (DefaultTableModel) this.jTablePedidos.getModel();//le asigno el TableModel del diseño
         jTablePedidos.setModel(this.jTablePedidos.getModel());
         setVisible(true);
     }
-
-
 
     private void ponerNombre() {
         int aux = this.indice + 1;
         this.nombre = "Terminal TPV " + aux;
         setTitle("Terminal TPV " + aux);
     }
-
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -123,9 +121,7 @@ public class VentanaInterna extends javax.swing.JInternalFrame {
     private javax.swing.JTable jTablePedidos;
     // End of variables declaration//GEN-END:variables
 
-    
     // ----------- Getters y Setters -------------
-
     public String getNombre() {
         return nombre;
     }
@@ -198,6 +194,4 @@ public class VentanaInterna extends javax.swing.JInternalFrame {
         this.jTablePedidos = jTablePedidos;
     }
 
-  
-    
 }

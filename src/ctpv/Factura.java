@@ -33,7 +33,6 @@ public class Factura {
         this.modelo = modelo;
         this.big = big;
         this.terminal = terminal;
-//        escribirEnConsola();//escribe en consola el resultado
         escribirEnFichero();//escribe la factura en el archivo
     }
 

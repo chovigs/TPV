@@ -12,10 +12,8 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
@@ -59,7 +57,6 @@ public class HiloEscuchaTPV extends Thread {
         
         while (contador < 7) { //controlo una petición de más
             try {
-                
                 socket = server.accept();
                //asigno el indice
                 int indiceaux=0;

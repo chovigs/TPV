@@ -13,8 +13,6 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.DefaultListModel;
-import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import tpv.ProductoPedido;
 
@@ -33,7 +31,7 @@ public class Ventas extends Thread {
     private HashMap<String, ProductoPedido> listaPedidos; // Aqui se almacenan los productos pedidos
     DefaultTableModel modelo;
     BigDecimal big;
-    static final String ficheroFactura ="Ventas.dat";
+    static final String ficheroFactura = "Ventas.dat";
 
     public Ventas(HiloEscuchaTPV hiloescucha, Socket socket, int indice) {
         this.hiloescucha = hiloescucha;
@@ -49,50 +47,38 @@ public class Ventas extends Thread {
         //asignamos la lista al modelo
         listaPedidos = new HashMap<>();
         modelo = new DefaultTableModel();
-        modelo=(DefaultTableModel) ventana.getjTablePedidos().getModel();
+        modelo = (DefaultTableModel) ventana.getjTablePedidos().getModel();
         ventana.getjTablePedidos().setModel(modelo);
-        
-     
+
         try {//recibimos los datos
             InputDatoRecibido = new ObjectInputStream(socket.getInputStream());
-          
+
         } catch (IOException ex) {
             Logger.getLogger(Ventas.class.getName()).log(Level.SEVERE, null, ex);
         }
         while (!socket.isClosed()) { //Comprobamos el tipo de "producto" que hemos recibido
             ProductoPedido producto = new tpv.ProductoPedido("", 0, 0);
             try {//convierto el dato recibido en ProductoPedido
-                producto = (ProductoPedido) InputDatoRecibido.readObject();                          
+                producto = (ProductoPedido) InputDatoRecibido.readObject();
             } catch (IOException ex) {
                 Logger.getLogger(Ventas.class.getName()).log(Level.SEVERE, null, ex);
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(Ventas.class.getName()).log(Level.SEVERE, null, ex);
-            } 
-           //Según el tipo de "producto", actualizamos o salimos
+            }
+            //Según el tipo de "producto", actualizamos o salimos
             if (!producto.getNombre().equals("salir")) {
-                    actualizarTabla(producto);
-                    //System.out.println(" producto "+producto.toString());
-                } else {
-                try {                    
-                    hiloescucha.eliminarventana(indice);
-                    hiloescucha.escribirVentas(ficheroFactura, modelo, big, ventana.getNombre());  
-                    socket.close();
+                actualizarTabla(producto);
+              
+            } else {
+                try {
+                    hiloescucha.eliminarventana(indice);//eliminamos la ventana correspondiente
+                    hiloescucha.escribirVentas(ficheroFactura, modelo, big, ventana.getNombre());//escribimos la venta en el archivo
+                    socket.close();//cerramos el socket
                 } catch (IOException ex) {
                     Logger.getLogger(Ventas.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                }
+            }
         }
-    }
-
-   
-
-    //diseño el elemento lista para presentarlo
-    private String elementoLista(ProductoPedido producto) {
-        String elemento = "";
-        String[] arrayelement = producto.getProducto();        
-        //formateamos para que quede mejor
-        elemento = arrayelement[1] + " x " +String.format("%-20s", arrayelement[0]) +  String.format("%-10s", producto.redondear(producto.getPrecio())) + "\t" + arrayelement[2];
-        return elemento;
     }
 
     //método para obtener el total
@@ -106,13 +92,13 @@ public class Ventas extends Thread {
         big = big.setScale(2, RoundingMode.HALF_UP);
         ventana.getjLabelTotalTicket().setText(" TOTAL \n" + big + " € ");
     }
-    
-     /**
+
+    /**
      * Método que borra la tabla para rellenarla nuevamente con los datos
      * actualizados de la compra.
      *
-     */  
-    
+     * @param producto
+     */
     public void actualizarTabla(ProductoPedido producto) {
         int a = modelo.getRowCount() - 1;
         for (int i = a; i >= 0; i--) {
@@ -123,9 +109,9 @@ public class Ventas extends Thread {
         } else {
             listaPedidos.remove(producto.getNombre());
         }
-       
+
         for (String string : listaPedidos.keySet()) {
-            modelo.addRow(listaPedidos.get(string).getProducto2());           
+            modelo.addRow(listaPedidos.get(string).getProducto2());
         }
         ventana.getjTablePedidos().repaint();
         //actualizamos el total

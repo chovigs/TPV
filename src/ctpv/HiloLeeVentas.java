@@ -6,39 +6,50 @@
 package ctpv;
 
 import comunes.*;
+import generadorClaves.GeneradorClaves;
 import java.io.BufferedReader;
-import java.io.EOFException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.math.BigDecimal;
+import java.io.RandomAccessFile;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.security.InvalidKeyException;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 /**
  *
  * @author chovi_000
+ * 
+ * Hilo que envia lee los datos de las ventas y los envía al MV
  */
 public class HiloLeeVentas extends Thread {
 
     String ficherofactura;
     static int  numeroLineas;
     static float ventasAM, ventasPM;
-    
-    
+    int AM;//Para saber si la venta ha sido por la mañana o por la tarde
+    //Variables para la conexion UDP
     DatagramSocket socket = null;
     String ip = "127.0.0.1";
     int port = 4455;
-
-    int AM;
+    
+    private PublicKey clavePublica; //Para la clave privada
 
     public HiloLeeVentas(String ficherofactura) {
         this.ficherofactura = ficherofactura;
@@ -53,14 +64,12 @@ public class HiloLeeVentas extends Thread {
 
     @Override
     public void run() {
+        leerclavePublica(); //obtenemos la clave pública
         while (true) {
             try {
                 Thread.sleep(500);
-                leerNumeroLineas();
-                enviarResultados();
-                System.out.println(" ventas " + numeroLineas);
-                System.out.println(" ventasAM " + ventasAM);
-                System.out.println(" ventasPM " + ventasPM);
+                leerNumeroLineas();//obtenemos los datos requeridos
+                enviarResultados(); //enviamos la información              
 
             } catch (InterruptedException ex) {
                 Logger.getLogger(HiloLeeVentas.class.getName()).log(Level.SEVERE, null, ex);
@@ -69,6 +78,7 @@ public class HiloLeeVentas extends Thread {
 
     }
 
+    //metodo para obtener el número de líneas de venta y comprueba la hora de la venta
     private void leerNumeroLineas() {
         ventasAM = 0;
         ventasPM = 0;
@@ -76,28 +86,26 @@ public class HiloLeeVentas extends Thread {
         File archivo = null;
         FileReader fr = null;
         BufferedReader br = null;
-        archivo = new File(ficherofactura);
-        System.out.println("fichero " + archivo.getPath());
+        archivo = new File(ficherofactura);       
         String linea;
 
         long tamanioArchivo = archivo.length();//Longitud del fichero
-
         //Si el tamaño del fichero es mayor a 0, es decir si no esta vacio
         if (tamanioArchivo > 0) {
             try {
                 fr = new FileReader(archivo);
-                br = new BufferedReader(fr);
-
-                while ((linea = br.readLine()) != null) {
+                br = new BufferedReader(fr);                
+                //leo el archivo linea a linea
+                while ((linea = br.readLine()) != null) { //mientras haya líneas
                     linea = "" + linea;
-                    comprobarlinea(linea);
+                    comprobarlinea(linea);//examinamos la linea
                 }
                 br.close();
             } catch (FileNotFoundException ex) {
                 Logger.getLogger(HiloLeeVentas.class.getName()).log(Level.SEVERE, null, ex);
             } catch (IOException ex) {
                 Logger.getLogger(HiloLeeVentas.class.getName()).log(Level.SEVERE, null, ex);
-            } finally {
+            } finally {//cerramos el file reader
                 try {
                     if (fr != null) {
                         fr.close();
@@ -106,28 +114,25 @@ public class HiloLeeVentas extends Thread {
                 }
             }
         }
-
     }
 
+    //metodo que examina la linea que se lee del archivo de ventas
     private void comprobarlinea(String linea) {
-
         StringTokenizer stk = new StringTokenizer(linea);
         String aux = stk.nextToken();
-        if (aux.equals("Terminal")) {
+        if (aux.equals("Terminal")) {//comprobamos si es "Teminal" o datos
             for (int i = 0; i < 7; i++) {
                 aux = stk.nextToken();
             }
-            AM = obtenerHora(aux);
-            
+            AM = obtenerHora(aux);//comprobamos la hora de la venta
         } else {
-            if (!aux.substring(0, 1).equals("-")) {
-                System.out.println("linea " + linea);
-                numeroLineas++;
-                while(stk.hasMoreTokens()) {
+            if (!aux.substring(0, 1).equals("-")) {//si no es línea de separación                
+                numeroLineas++;//aumentamos el número de lineas
+                while(stk.hasMoreTokens()) {//recorremos la línea
                         aux = stk.nextToken();
                         System.out.println(" "+ aux);
                     }
-                float parcial=Float.parseFloat(aux);
+                float parcial=Float.parseFloat(aux);//obtenemos el subtotal y lo añadimos al total correspondiente
                 if (AM == 1) {
                     ventasAM=ventasAM+parcial;                    
                 }else{
@@ -136,7 +141,7 @@ public class HiloLeeVentas extends Thread {
             }
         }
     }
-
+//Metodo obtenemos la hora de la venta y devuelve si ha sido por la mañana o por la tarde
     private int obtenerHora(String aux) {
         int am = 0;
         int hora = 0;
@@ -145,20 +150,26 @@ public class HiloLeeVentas extends Thread {
         if (hora >= 8 && hora < 14) {
             am = 1;            
         }
-        if (hora >= 14 && hora < 20) {
+        if (hora >= 16 && hora < 20) {
             am = -1;            
         }
         return am;
     }
 
-    private void enviarResultados() {
+    private void enviarResultados() {//enviamos los resultados al MV
         try {
-            comunes.Resultado resultado = new comunes.Resultado(ventasAM, ventasPM, numeroLineas);
+            //creamos al objeto que guarda los resultados
+            Resultado resultado = new Resultado(ventasAM, ventasPM, numeroLineas);            
             byte[] bytes = resultado.getBytes();
-            //InetAddress inetaddress = Inet4Address.getLocalHost();
+            
+            //Ciframos con clave pública el resultado utilizando RSA
+            Cipher cifrador = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+            cifrador.init(Cipher.ENCRYPT_MODE, clavePublica);
+            byte[] bufferCifrado = cifrador.doFinal(bytes);
+           //enviamos el resultado cifrado
             InetAddress inetaddress = InetAddress.getByName(ip);
             socket = new DatagramSocket();
-            DatagramPacket datagrama = new DatagramPacket(bytes, bytes.length, inetaddress, port);
+            DatagramPacket datagrama = new DatagramPacket(bufferCifrado, bufferCifrado.length, inetaddress, port);
             System.out.println("enviando datagrama");
             socket.send(datagrama);
             socket.close();
@@ -168,8 +179,53 @@ public class HiloLeeVentas extends Thread {
             Logger.getLogger(HiloLeeVentas.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             Logger.getLogger(HiloLeeVentas.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(HiloLeeVentas.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NoSuchPaddingException ex) {
+            Logger.getLogger(HiloLeeVentas.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InvalidKeyException ex) {
+            Logger.getLogger(HiloLeeVentas.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IllegalBlockSizeException ex) {
+            Logger.getLogger(HiloLeeVentas.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (BadPaddingException ex) {
+            Logger.getLogger(HiloLeeVentas.class.getName()).log(Level.SEVERE, null, ex);
         }
 
+    }
+
+    //metodo paraleer el archivo con la clave publica
+     public void leerclavePublica() {
+        File ficheropublico = new File("publico.cfg");
+        if (ficheropublico.exists()) {
+            System.out.println(" existe ");
+            try {
+                
+                RandomAccessFile ras = new RandomAccessFile(ficheropublico, "rw");
+                int tamano = (int) ras.length();
+                byte[] cpub = new byte[tamano];
+                //guardo clave publica de fichero
+                ras.read(cpub);
+//MUY IMPORTANTE CERRAR LOS RANDOM ACCESFILE SINO NO FUNCIONA BIEN
+                ras.close();
+
+                //descodificamos la clave
+                KeyFactory keyfactory = KeyFactory.getInstance("RSA");
+                X509EncodedKeySpec x509 = new X509EncodedKeySpec(cpub);
+                
+                //almaceno la clave publica
+                clavePublica = keyfactory.generatePublic(x509);
+              
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(GeneradorClaves.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(GeneradorClaves.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (NoSuchAlgorithmException ex) {
+                Logger.getLogger(GeneradorClaves.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InvalidKeySpecException ex) {
+                System.out.println("clave publica "+clavePublica);
+                Logger.getLogger(GeneradorClaves.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
     }
 
 }

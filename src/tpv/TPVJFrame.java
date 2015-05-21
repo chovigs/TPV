@@ -16,10 +16,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.Socket;
@@ -100,7 +98,7 @@ public class TPVJFrame extends JFrame {
             public void windowClosing(WindowEvent arg0) {
                 //hacemos que se cierre la ventana en el CTPV
                 ProductoPedido prodsalir = new ProductoPedido("salir", 1, 1);
-                enviarResultado(prodsalir);                   
+                enviarResultado(prodsalir);
                 System.exit(0);
             }
         });
@@ -146,7 +144,7 @@ public class TPVJFrame extends JFrame {
             public void actionPerformed(ActionEvent arg0) {
                 //hacemos que se cierre la ventana en el CTPV
                 ProductoPedido prodsalir = new ProductoPedido("salir", 1, 1); //enviamos este producto "especial"
-                enviarResultado(prodsalir);                   
+                enviarResultado(prodsalir);
                 System.exit(0);
             }
         });
@@ -377,12 +375,12 @@ public class TPVJFrame extends JFrame {
         int[] indices = tabla.getSelectedRows();
         for (int i = 0; i < indices.length; i++) {
             listaPedidos.remove((String) modeloTabla.getValueAt(indices[i], 0));
-            ProductoPedido nuevoPedido= new ProductoPedido((String)modeloTabla.getValueAt(indices[i], 0),1,0);
+            ProductoPedido nuevoPedido = new ProductoPedido((String) modeloTabla.getValueAt(indices[i], 0), 1, 0);
             enviarResultado(nuevoPedido);
         }
         actualizarTabla();
         actualizarTotal();
-       
+
     }
 
     private void crearCalculadora() {
@@ -396,11 +394,11 @@ public class TPVJFrame extends JFrame {
             // Cliente TCP // creamos el socket
 
             socket = new Socket(HOST, PUERTO);
-             //esperamos el indice asignado  
+            //esperamos el indice asignado  
             while (indice == -1) {
                 DataInputStream entrada = new DataInputStream(socket.getInputStream());
                 String indi = entrada.readUTF();
-                indice = Integer.parseInt(indi);               
+                indice = Integer.parseInt(indi);
             }
         } catch (IOException ex) {
             Logger.getLogger(TPVJFrame.class.getName()).log(Level.SEVERE, null, ex);
@@ -413,21 +411,17 @@ public class TPVJFrame extends JFrame {
         }
     }
 
-
     //Método que envía el nuevoProducto
-
-    public void enviarResultado(ProductoPedido nuevoPedido){
-         try {  
-            
+    public void enviarResultado(ProductoPedido nuevoPedido) {
+        try {
             salida.writeObject(nuevoPedido);
             salida.flush();
             salida.reset();
         } catch (IOException ex) {
             Logger.getLogger(TPVJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
     }
-    
+
     public static void main(String[] args) {
         TPVJFrame ventana = new TPVJFrame();
     }

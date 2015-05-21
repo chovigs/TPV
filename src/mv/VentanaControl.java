@@ -10,6 +10,8 @@ package mv;
  *
  * @author chovi_000
  */
+
+//ventana para la gestión de ventas
 public class VentanaControl extends javax.swing.JFrame {
 
     /**
