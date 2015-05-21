@@ -6,6 +6,7 @@
 
 package tpv;
 
+import comunes.*;
 /**
  *
  * @author Diurno

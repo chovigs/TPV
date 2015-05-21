@@ -5,6 +5,7 @@
  */
 package ctpv;
 
+import comunes.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.math.BigDecimal;
@@ -14,7 +15,6 @@ import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.table.DefaultTableModel;
-import tpv.ProductoPedido;
 
 /**
  *
@@ -57,7 +57,7 @@ public class Ventas extends Thread {
             Logger.getLogger(Ventas.class.getName()).log(Level.SEVERE, null, ex);
         }
         while (!socket.isClosed()) { //Comprobamos el tipo de "producto" que hemos recibido
-            ProductoPedido producto = new tpv.ProductoPedido("", 0, 0);
+            ProductoPedido producto = new ProductoPedido("", 0, 0);
             try {//convierto el dato recibido en ProductoPedido
                 producto = (ProductoPedido) InputDatoRecibido.readObject();
             } catch (IOException ex) {
