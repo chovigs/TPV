@@ -57,6 +57,7 @@ public class HiloEscuvhaMv extends Thread {
             DatagramSocket socket = new DatagramSocket(4455);
 
             while (true) {
+                leerPrivado();
                 //recibe los datos
                 byte[] bufferCifrado = new byte[128];
                 DatagramPacket datagrama = new DatagramPacket(bufferCifrado, 128);

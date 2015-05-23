@@ -31,7 +31,6 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.swing.JOptionPane;
 
 /**
  *
@@ -65,18 +64,17 @@ public class HiloLeeVentas extends Thread {
 
     @Override
     public void run() {
-        leerclavePublica(); //obtenemos la clave pública
+        //leerclavePublica(); //obtenemos la clave pública
         while (true) {
             try {
                 Thread.sleep(500);
+                leerclavePublica(); //obtenemos la clave pública por si se ha generado una nueva
                 leerNumeroLineas();//obtenemos los datos requeridos
                 
                 if(clavePublica!=null){
                     enviarResultados(); //enviamos la información
                 }
-                else{                   
-                    leerclavePublica();//intentamos leer la clave 
-                }
+                
             } catch (InterruptedException ex) {
                 Logger.getLogger(HiloLeeVentas.class.getName()).log(Level.SEVERE, null, ex);
             }
