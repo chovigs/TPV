@@ -31,6 +31,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -46,8 +47,8 @@ public class HiloLeeVentas extends Thread {
     int AM;//Para saber si la venta ha sido por la mañana o por la tarde
     //Variables para la conexion UDP
     DatagramSocket socket = null;
-    String ip = "127.0.0.1";
-    int port = 4455;
+    String ip = "127.0.0.1"; //ip par la conexion UDP
+    int port = 4455;//puerto para la conexion UDP
     
     private PublicKey clavePublica; //Para la clave privada
 
@@ -69,8 +70,13 @@ public class HiloLeeVentas extends Thread {
             try {
                 Thread.sleep(500);
                 leerNumeroLineas();//obtenemos los datos requeridos
-                enviarResultados(); //enviamos la información              
-
+                
+                if(clavePublica!=null){
+                    enviarResultados(); //enviamos la información
+                }
+                else{                   
+                    leerclavePublica();//intentamos leer la clave 
+                }
             } catch (InterruptedException ex) {
                 Logger.getLogger(HiloLeeVentas.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -143,7 +149,7 @@ public class HiloLeeVentas extends Thread {
     }
 //Metodo obtenemos la hora de la venta y devuelve si ha sido por la mañana o por la tarde
     private int obtenerHora(String aux) {
-        int am = 0;
+        int am = 0;//indica si la venta es por la mañana o por la tarde
         int hora = 0;
         String horaaux = aux.substring(0, 2);
         hora = Integer.parseInt(horaaux);
@@ -226,6 +232,9 @@ public class HiloLeeVentas extends Thread {
                 Logger.getLogger(GeneradorClaves.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+//        else{
+//            JOptionPane.showMessageDialog(null,"No se han generado las claves. No se enviaran los datos", "Error", JOptionPane.ERROR_MESSAGE);
+//        }
     }
 
 }

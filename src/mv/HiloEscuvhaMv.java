@@ -23,13 +23,14 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 /**
  *
@@ -140,7 +141,7 @@ public class HiloEscuvhaMv extends Thread {
                 PKCS8EncodedKeySpec pkcx8 = new PKCS8EncodedKeySpec(cpri);
                 
                 //almaceno la clave privada                
-                clavePrivada = keyfactory.generatePrivate(pkcx8);
+                clavePrivada = keyfactory.generatePrivate(pkcx8);                
             } catch (FileNotFoundException ex) {
                 Logger.getLogger(HiloEscuvhaMv.class.getName()).log(Level.SEVERE, null, ex);
             } catch (IOException ex) {
@@ -150,6 +151,10 @@ public class HiloEscuvhaMv extends Thread {
             } catch (InvalidKeySpecException ex) {
                 Logger.getLogger(HiloEscuvhaMv.class.getName()).log(Level.SEVERE, null, ex);
             }
+        }
+        else{
+            JOptionPane.showMessageDialog(this.ventanacont,"No se han generado las claves. Prueba más tarde", "Error", JOptionPane.ERROR_MESSAGE);
+            System.exit(0);
         }
     }
    

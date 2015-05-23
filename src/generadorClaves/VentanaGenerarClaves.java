@@ -32,7 +32,7 @@ public class VentanaGenerarClaves extends javax.swing.JFrame {
     public void generar(){
          generador= new GeneradorClaves();
         try {
-            generador.generarClaves(algoritmo1, algoritmo2);
+            generador.generarClaves(algoritmo1, algoritmo2);           
         } catch (NoSuchAlgorithmException ex) {
             Logger.getLogger(VentanaGenerarClaves.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -82,20 +82,21 @@ public class VentanaGenerarClaves extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(100, 100, 100)
-                .addComponent(jButtonGenerar, javax.swing.GroupLayout.DEFAULT_SIZE, 217, Short.MAX_VALUE)
-                .addGap(100, 100, 100))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jButtonSalir, javax.swing.GroupLayout.PREFERRED_SIZE, 87, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jButtonSalir, javax.swing.GroupLayout.PREFERRED_SIZE, 87, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                        .addGap(25, 25, 25)
+                        .addComponent(jButtonGenerar, javax.swing.GroupLayout.DEFAULT_SIZE, 367, Short.MAX_VALUE)))
                 .addGap(25, 25, 25))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(100, 100, 100)
+                .addGap(79, 79, 79)
                 .addComponent(jButtonGenerar, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 39, Short.MAX_VALUE)
+                .addGap(60, 60, 60)
                 .addComponent(jButtonSalir, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(24, 24, 24))
         );

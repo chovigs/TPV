@@ -53,17 +53,17 @@
       <Layout>
         <DimensionLayout dim="0">
           <Group type="103" groupAlignment="0" attributes="0">
-              <Group type="102" attributes="0">
-                  <EmptySpace min="-2" max="-2" attributes="0"/>
+              <Group type="102" alignment="0" attributes="0">
+                  <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Group type="102" alignment="0" attributes="0">
                           <Component id="jLabel1" max="32767" attributes="0"/>
                           <EmptySpace min="69" pref="69" max="-2" attributes="0"/>
                       </Group>
-                      <Component id="jLabel2" alignment="0" max="32767" attributes="0"/>
+                      <Component id="jLabel2" alignment="0" pref="219" max="32767" attributes="0"/>
                       <Component id="jLabel3" alignment="0" max="32767" attributes="0"/>
                   </Group>
-                  <EmptySpace pref="37" max="32767" attributes="0"/>
+                  <EmptySpace pref="21" max="32767" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Component id="jTextFieldLineas" pref="230" max="32767" attributes="0"/>
                       <Component id="jTextFieldVentasAM" max="32767" attributes="0"/>
